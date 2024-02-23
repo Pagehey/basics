@@ -11,13 +11,64 @@
 		<link rel="stylesheet" href="dist/theme/black.css">
 
 		<!-- Theme used for syntax highlighted code -->
-		<link rel="stylesheet" href="plugin/highlight/monokai.css">
+<!--		<link rel="stylesheet" href="plugin/highlight/monokai.css">-->
+<!--		<link rel="stylesheet" href="plugin/highlight/zenburn.css">-->
+<!--		<link rel="stylesheet" href="plugin/highlight/an-old-hope.css">-->
+		<link rel="stylesheet" href="plugin/highlight/github-dark.css">
+		<style>
+			.modal {
+				position: fixed;
+				inset: 200px;
+				z-index: 10;
+				background-color: lightcyan;
+				border: 1px solid lightgray;
+				border-radius: 8px;
+				box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+				display: flex;
+				justify-content: center;
+				align-items: center;
+			}
+			.modal > div {
+				display: flex;
+				flex-direction: column;
+				gap: 2rem;
+			}
+			.modal > div button {
+				font-size: 4rem;
+				padding: 1rem 3rem;
+				cursor: pointer;
+			}
+			.modal #close-btn {
+				position: absolute;
+				top: 1rem;
+				right: 1rem;
+			}
+			button.open-modal {
+				cursor: pointer;
+				font-size: 2rem;
+			}
+		</style>
+
 	</head>
 	<body>
+		<div class="modal" style="display: none">
+			<button id="close-btn"
+					type="button"
+					onclick="this.parentElement.style.display = 'none'"
+			>
+				close
+			</button>
+			<div>
+				<button id="blocking-btn" type="button">Block!</button>
+				<button id="alert-btn" type="button">Alert!</button>
+			</div>
+		</div>
 		<div class="reveal">
 			<div class="slides">
-				<section>Slide 1</section>
-				<section>Slide 2</section>
+				<section data-markdown="article.md"
+						 data-separator="^\n\n\n"
+						 data-separator-vertical="^\n\n"
+						 data-separator-notes="^Note:"></section>
 			</div>
 		</div>
 
@@ -31,10 +82,37 @@
 			// - https://revealjs.com/config/
 			Reveal.initialize({
 				hash: true,
+				width: '80%',
+				maxScale: 1.5,
 
 				// Learn about plugins: https://revealjs.com/plugins/
 				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
 			});
+		</script>
+		<script>
+			function blockingFunc() {
+				console.log('starting loop')
+				let n = 0
+				while (n < 5_000_000_000) {
+					n++
+				}
+				console.log('loop ended')
+			}
+
+			const blockingBtn = document.getElementById('blocking-btn')
+			blockingBtn.addEventListener('click', (_event) => {
+				blockingFunc()
+			})
+
+			const alertBtn = document.getElementById('alert-btn')
+			alertBtn.addEventListener('click', (_event) => {
+				alert('Hello there!')
+			})
+
+			function openModal() {
+				const modal = document.querySelector('.modal')
+				modal.style.removeProperty('display')
+			}
 		</script>
 	</body>
 </html>
