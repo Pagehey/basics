@@ -87,6 +87,7 @@ function foo() {
 ```
 
 
+
 ## DOM Manipulations
 
 
@@ -121,6 +122,24 @@ document.querySelectorAll('#product-list .product-card')
 // good, always use scope if available, it's safer
 productList.querySelectorAll('.product-card')
 productList.querySelectorAll('.product-card.on-sale')
+```
+
+
+Retrieve indirect parent element
+```html
+<div class="product-list">
+    <div>
+        <button type="button">buy</button>
+    </div>
+</div>
+<div class="product-list">
+    <div>
+        <button type="button">buy</button>
+    </div>
+</div>
+```
+```js
+const productListElement = button.closest('.product-list')
 ```
 
 
@@ -345,6 +364,7 @@ const isEven = n => n % 2 === 0
 ### Keep it good style 🥸
 
 [MDN style guide](https://developer.mozilla.org/en-US/docs/MDN/Writing_guidelines/Writing_style_guide/Code_style_guide/JavaScript) ❤️
+[Try to code without if](https://medium.com/edge-coders/coding-tip-try-to-code-without-if-statements-d06799eed231)
 
 
 ### functions
@@ -430,6 +450,12 @@ document.addEventListener('scroll', (event) => {
         // do stuff
     }
 })
+```
+
+
+private variables
+```js
+const _loaderElement = document.querySelector('#mm_loader')
 ```
 
 
@@ -775,7 +801,8 @@ import/export is supported by every browser since 2018 https://developer.mozilla
 
 
 ```js
-// mm-carousel.js
+// assets/mm-carousel.js
+
 import Splide from 'https://ga.jspm.io/npm:@splidejs/splide@4.1.4/dist/js/splide.esm.js'
 
 export function initCarousel(element) {
@@ -828,6 +855,8 @@ As well as some other features like compatibility with older browsers, minificat
 
 
 ```liquid
+<!-- layout/theme.liquid --> 
+
 <head>
     <!-- ... -->
     <script type="importmap">
@@ -847,7 +876,8 @@ As well as some other features like compatibility with older browsers, minificat
 
 
 ```js
-// mm-carousel.js
+// assets/mm-carousel.js
+
 import Splide from '@splidejs/splide'
 
 export function initCarousel(element) {
@@ -874,23 +904,18 @@ export function initCarousel(element) {
 
 Dedicated MoonMoon snippet in head for custom resources
 ```liquid
-<!-- theme.liquid -->
+<!-- layout/theme.liquid -->
 
 <head>
+    {% render 'mm-head' %} <!-- before other scripts -->
     <!-- ... -->
-    
-    {% render 'mm-head' %}
 </head>
 ```
+
 ```liquid
-<!-- mm-head.liquid
+<!-- snippets/mm-head.liquid -->
+
 <!-- BEGIN Moon-Moon ASSETS -->
-
-<!-- dependencies -->
-
-
-<!-- utils functions -->
-<script src="{{ 'mm-utils.js' | asset_url }}" defer></script>
 
 <!-- loader -->
 <template id="mm_loader--template">
@@ -905,10 +930,287 @@ Dedicated MoonMoon snippet in head for custom resources
 
 <!-- accordion -->
 <link rel="stylesheet" href="{{ 'mm-accordion.css' | asset_url }}"/>
-<script src="{{ 'mm-accordion.js' | asset_url }}" defer></script>
-
 <!-- quick buy -->
 <link rel="stylesheet" href="{{ 'mm-quick-buy.css' | asset_url }}"/>
 
-<!-- TODO add importmap and add internal and external assets -->
+<script type="importmap">
+    // ...
+</script>
+<script async src="https://ga.jspm.io/npm:es-module-shims@1.8.3/dist/es-module-shims.js" crossorigin="anonymous"></script>
+
+<!-- END Moon-Moon ASSETS -->
 ```
+
+
+A `mm-utils.js` file to gather utilities functions
+```js
+// assets/mm-utils.js
+
+const loaderHTML = document.getElementById('mm_loader--template').innerHTML
+
+const _priceFormatter = new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+})
+
+// Takes a price as Float and returns if formatted
+// [Inl.NumberFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat)
+// eg:
+//      `formatPrice(10.2) //=> "10,20 €"`
+function formatPrice(price) {
+    return _priceFormatter.format(price);
+}
+
+const _relativeTimeFormatter = new Intl.RelativeTimeFormat('fr', { style: 'short' });
+
+// [Intl.RelativeTimeFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/RelativeTimeFormat)
+function formatRelativeTime(quantity, interval) {
+    return _relativeTimeFormatter.format(quantity, interval)
+}
+
+export { loaderHTML, formatPrice, formatRelativeTime }
+```
+
+
+
+# Exercice 1: Quick buy card
+
+
+
+## Classes and this
+
+
+[Classes](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes)
+
+> Classes are a template for creating objects. They encapsulate data with code to work on that data.
+> Classes in JS are built on prototypes but also have some syntax and semantics that are unique to classes.
+
+Classes ease a concept of OOP: encapsulated state + behavior in the same object
+
+
+Write a basic class
+```js
+class Product {
+}
+```
+```js
+const product1 = new Product()
+const product2 = new Product()
+```
+Pretty useless though... <!-- .element: class="fragment fade-up" -->
+
+
+Let's give it some properties
+```js
+class Product {
+    constructor(name, price) { // equivalent of `initialize` in Ruby
+        this.name = name
+        this.price = price
+    }
+}
+```
+```js
+const product = new Product('skateboard', 150)
+product.name // 'skateboard'
+product.price // 150
+
+console.log(product)
+
+```
+
+
+### What's ... this?
+
+![What's this?](images/whats-this.jpg)
+
+
+In the contructor, `this` refers to the object that is being constructed, the new instance.
+```js
+class Product {
+    constructor() {
+        console.log(this)
+        this.itself = this
+    }
+}
+```
+```js
+const product = new Product()
+// Object { itself: { ... } }
+product.itself === product // true
+
+const product2 = new Product()
+product.itself === product2 // false
+```
+
+
+Let's now add some behavior
+```js
+class CartProduct {
+    constructor(name, price) {
+        this.name = name
+        this.price = price
+        this.quantity = 0
+    }
+    
+    addOne() {
+        this.quantity += 1
+    }
+}
+```
+```js
+const product = new Product('skateboard', 150)
+product.quantity // 0
+
+product.addOne()
+product.addOne()
+
+product.quantity // 2
+```
+
+
+In methods (functions defined in classes), `this` refers to the object the method is called on
+```js
+const product = new Product()
+const product2 = new Product()
+
+product.quantity // 0
+product2.quantity // 0
+
+product.addOne()
+
+product.quantity // 1
+product2.quantity // 0
+```
+Within methods, it's the only way to access the object properties (name, price...)
+
+
+Getter
+```js
+import { priceFormatter } from 'mm-utils'
+
+class Product {
+    constructor(price) {
+        this.price = price
+    }
+    
+    get formattedPrice() { // no parameter, never
+        return priceFormatter.format(this.price)
+    }
+}
+```
+```js
+const product = new Product(15.2)
+product.price 
+// 15.2
+product.formattedPrice // no parenthesis, property like method
+// "15,20 €" 
+```
+
+
+Setter
+
+Can be super useful, but also be tricky
+
+```html
+<div class="product-card" data-product-id="1">
+    <div class="product-quantity">0</div>
+    <div class="product-total-price">0 €</div>
+</div>
+```
+
+```js
+class Product {
+    constructor(productID, price) {
+        this.productID = productID
+        this.#quantity = 0 // private property
+        // this._quantity = 0 // old way, for compatibility 
+    }
+    
+    get productCard() { /* ... */ }
+    get formattedTotalPrice() { /* ... */ }
+    
+    get quantity() {
+        return this.#quantity
+    }
+    
+    set quantity(newQuantity) {
+        this.#quantity = newQuantity
+        this.quantityElement.innerText = this.#quantity
+        this.totalPriceElement.innerText = this.formattedTotalPrice
+    }
+}
+```
+
+
+```js
+const product = new Product(42, 15.2)
+
+product.quantity // 0
+product.formattedTotalPrice // "0 €"
+
+product.quantity = 2    
+
+product.quantity // 2
+product.formattedTotalPrice // "30,40 €"
+```
+
+
+Inheritance (super)
+```js
+class Product {
+    constructor(name, price) {
+        this.name = name
+        this.price = price
+    }
+    
+    get formattedPrice() {
+        return priceFormatter.format(this.price)
+    } 
+    
+    addToCart() {
+        return 'sending product to cart'
+    }
+}
+
+class FreeProduct extends Product {
+    constructor(name) {
+        super(name, 0)
+    }
+    
+    get formattedPrice() {
+        return 'FREE!'
+    }
+    
+    addToCart() {
+        if (this.presentInCart) {
+            return 'already in cart!'
+        }
+        this.presentInCart = true
+        return super.addToCart()
+    }
+} 
+
+const cher = new Product('cher', 140.3)
+cher.formattedPrice // "140,30 €" 
+
+const gratos = new FreeProduct('gratos')
+gratos.formattedPrice // "FREE!"
+
+gratos.addToCart() // sending product to cart
+gratos.addToCart() // already in cart!
+```
+
+
+
+## Exercice 2: Build an accordion
+
+using a class! 😎
+
+
+
+## Shopify Cart and section renderings APIs
+
+
+###
