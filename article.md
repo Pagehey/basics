@@ -6,6 +6,7 @@ Ce qu'on va voir :
 - `var`, `const` ou `let` ? 🎾
 - manipulations du **DOM** 🔧
 - `functions` ƒ⒳
+- du style 😎
 - `async`/`await` | `then`/`catch` 🕰️
 - `class` / `this` 👉
 - et autres joyeusetés 🥳
@@ -197,6 +198,24 @@ productCard.style.setProperty('display', 'none')
 <!-- .element: class="fragment fade-up" data-fragment-index="3" -->
 
 
+### Events
+Preferred way
+```js
+document.addEventListener('click', (event) => {
+    console.log('clac')
+})
+```
+_Not great, not terrible_ but not recommended
+```js
+<button type="button" onclick="doStuff()">click me!</button>
+```
+
+Note:
+onclick can involve too much coupling between HTML and JS. It is best and advised to keep both concerns separated.
+Also, it binds an element to a single listener, not really future-proof in case of evolution.
+However, if you feel using addEventListener is too cumbersome, you can still use onclick notation.
+
+
 ### Dataset property
 
 
@@ -220,7 +239,7 @@ parseInt(productCard.dataset.productId) // 1
 productCard.dataset.hasDiscount === 'true' // false
 ```
 
-Or you will have bad suprises
+Or you will have bad surprises
 ```js
 if (productCard.dataset.hasDiscount) { // string 'false' is truthy!!
     addProductWithDiscount() // happy customer ;-)
@@ -354,6 +373,9 @@ logEventTarget.name // "logEventTarget"
 element.addEventListener('click', logEventTarget)
 ```
 ```js
+element.addEventListener('click', (event) => logEventTarget(event)) // same
+```
+```js
 const isEven = n => n % 2 === 0
     
 [1, 2, 3, 4].filter(isEven) // [2, 4]
@@ -392,7 +414,7 @@ if it returns a boolean it should read as an assertion
 isVisible(element)
 isEmpty(array)
 hasHiddenClass(element)
-product1.cheapierThan(product2)
+product1.cheaperThan(product2)
 ```
 
 
@@ -462,7 +484,7 @@ const _loaderElement = document.querySelector('#mm_loader')
 ### DO.NOT.DO.THIS! I DARE YOU!
 ```js
 const q = 10
-element.addeventListener('input', (e) => {
+element.addEventListener('input', (e) => {
     const t = e.target
     
     const p = parseInt(t.value) * q 
@@ -499,7 +521,7 @@ Whenever it happens.
 
 Also, the browser is not blocked while waiting for the event to happen. 
 
-Thankfully you can still click everywere, 
+Thankfully you can still click everywhere, 
 scroll, and interact with the page.
 
 
@@ -527,7 +549,7 @@ const xhr = new XMLHttpRequest()
 xhr.open('GET', 'https://example.com')
 
 xhr.addEventListener('load', (event) => {
-    console.log('successfuly loaded some stuff!')
+    console.log('successfully loaded some stuff!')
 })
 
 xhr.addEventListener('error', event => alert('oopsy!'))
@@ -560,18 +582,18 @@ Like XHR, you set it up, and send it (it is all within one function call now)
 
 But instead of setting up event listeners, you tell the browser what to do next
 
-You are telling the brower **`fetch`** this url, and **`then`** run this code with the response when it comes back
+You are telling the browser **`fetch`** this url, and **`then`** run this code with the response when it comes back
 
 
 ```js
 fetch('https://example.com') // fetch this
     .then((response) => { // then do that
-        console.log(response) // Reponse { status: 200, ok: true ... }
+        console.log(response) // Response { status: 200, ok: true ... }
     })
 
 fetch('https://example.com/this-page-does-not-exist') // fetch this
     .then((response) => { // then do that
-        console.log(response) // Reponse { status: 404, ok: false ... }
+        console.log(response) // Response { status: 404, ok: false ... }
     })
 ```
 
@@ -609,6 +631,35 @@ code execution is several orders of magnitude faster than sending an HTTP and aw
 Even with a really fast connections
 
 
+### Reading the response
+
+If you look at the response's body, you'll see a `ReadableStream`.
+
+```js
+fetch('...').then(response => console.log(response.body))
+```
+
+It's because `fetch` is also made to handle responses so large they need to be streamed from the server to the client.
+
+If the response is known to be a JSON, use `response.json()`. It will return another Promise that resolves
+with the result of parsing the response body text as JSON.
+
+The same method exists for text body: `response.text()`
+
+
+```js
+fetch('https://api.shopshop/cart.json')
+    .then(response => response.json()) // another promise, so ...
+    .then((data) => { // another `then`
+        console.log(data)
+        // don't forget to return data if you want the chain to go on
+        return data
+    })
+    .then((data) => { doSomethingWith(data) }) // not returning anything
+    .then(data => data === undefined)
+```
+
+
 ### `async`/`await`
 - [async](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/async_function)
 - [await](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await)
@@ -642,7 +693,7 @@ const cartAttributeResponse = await addAttributeToCart(attribute)
 ```js
 const result = await fetch('https://example.com')
 console.log(result)
-// Reponse { status: 200, ok: true ... }, not a promise
+// Response { status: 200, ok: true ... }, not a promise
 ```
 
 ```js
@@ -689,7 +740,7 @@ while (n < 50_000_000) {
 <button class="open-modal" type="button" onclick="openModal()">Démo</button>
 
 
-That's why sometimes we wan't to cast this kind of spell
+That's why sometimes we want to cast this kind of spell
 ```js
 displayElements() // removing display = 'none' from a bunch of elements
 setTimeout(() => {
@@ -735,7 +786,7 @@ The problem(s) with script tags
 - If the script is written in a snippet rendered many times, same JS is loaded again and again
 - It is not as secure as JS files when you interpolate user input
 - It does not take advantage of resource caching by browsers
-- If can lead to JS code too much dependant of HTML
+- It can lead to JS code too much dependant of HTML
 
 
 Why not simple JS files loaded in head?
@@ -1213,4 +1264,214 @@ using a class! 😎
 ## Shopify Cart and section renderings APIs
 
 
-###
+### Cart API
+
+[documentation](https://shopify.dev/docs/api/ajax/reference/cart)
+
+Shopify cart API defines 5 endpoints:
+
+- **GET** `/cart.js`
+- **POST** `/cart/add.js`
+- **POST** `/cart/update.js`
+- **POST** `/cart/change.js`
+- **POST** `/cart/clear.js`
+
+
+### GET /cart.js
+
+Get cart content
+
+```js
+fetch(window.Shopify.routes.root + 'cart.js')
+    .then(response => response.json()) // parses the response, but returns a Promise
+```
+
+[see response content](https://shopify.dev/docs/api/ajax/reference/cart#get-locale-cart-js)
+
+
+### POST /cart/add.js
+
+[doc](https://shopify.dev/docs/api/ajax/reference/cart#post-locale-cart-add-js)
+
+Add several items to the cart, each with a specific quantity
+
+```js
+fetch(window.Shopify.routes.root + 'cart/add.js', {
+  method: 'POST', // sending/posting data
+  headers: {
+    'Content-Type': 'application/json' // telling the server you're sending JSON
+  },
+  body: JSON.stringify({ 
+    items: [
+        { id: 36110175633573, quantity: 2 }, { id: 56143875752570, quantity: 1 }
+        //    variant id      new quantity (will overide if already present)
+    ] 
+  })
+})
+// responds with added items (with full details)
+```
+
+
+You can also send item _properties_ and _selling_plan_
+```js
+fetch(window.Shopify.routes.root + 'cart/add.js', {
+  method: 'POST', 
+  headers: {
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({ 
+    items: [
+        {
+          quantity: 2,
+          id: 56143875752570,
+          properties: { "__superpack": true },
+          selling_plan: 25162
+        }
+    ] 
+  })
+})
+```
+
+
+### POST /cart/update.js
+
+Update items (only quantity), and cart's note and attributes
+```js
+fetch(window.Shopify.routes.root + 'cart/update.js', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        // items will be added if not already in the cart
+        updates: { 36110175633573: 2, 56143875752570: 1 },
+        note: "This is the cart's note",
+        attributes: {
+            superbox_needs: "etre-tout-propre,faire-la-vaisselle"
+        }
+    })
+})
+```
+
+
+### POST /cart/change.js
+
+Change a **single** item `quantity`, `properties` or `selling_plan`
+
+> Only items already in your cart can be changed, and you can change only one line item at a time
+
+```js
+fetch(window.Shopify.routes.root + 'cart/update.js', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        id: 794864053,
+        quantity: 3, // optional 
+        properties: { gift_wrap: true }, // optional
+        selling_plan: 183638 // optional
+    })
+})
+```
+
+
+### POST /cart/clear.js
+
+Clear all the cart items, returning cart
+
+_But does not clear note or attributes!_
+
+
+### How to use in real life?
+
+Don't repeat the usual stuff!
+
+
+```js
+import { mmLog } from 'mm-utils'
+
+let _requestId = 0
+
+function request(method, path, payload = null) {
+    const options = {
+        method,
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }
+
+    if (payload) {
+        options.body = JSON.stringify(payload)
+    }
+
+    const requestId = ++_requestId
+    mmLog(`[${requestId}] fetching ${method} '${path}' payload:`, payload)
+    
+    return fetch(window.Shopify.routes.root + path, options)
+        .then(response => response.json())
+        .then(data => {
+            mmLog(`[${requestId}] receiving '${path}'`, data)
+            if (data.status && data.status > 400) {
+                throw(data);
+            } else {
+                return data;
+            }
+        })
+}
+
+export function getCart() {
+    return request('GET', 'cart.js')
+}
+
+export function clearCart() {
+    return request('POST', 'cart.js')
+}
+
+export function addToCart(items) {
+    return request('POST', 'cart/add.js', items)
+}
+
+export function addProductToCart(productVariantId) {
+    return addToCart([{
+        id: productVariantId, quantity: 1
+    }])
+}
+```
+
+
+## Section rendering
+
+[documentation](https://shopify.dev/docs/api/section-rendering)
+
+
+Section rendering API allows you to ask for the HTML of one or several sections, with a simple fetch.
+
+
+```js
+function handleResponse() {
+  JSON.parse(this.responseText);
+}
+const request = new XMLHttpRequest();
+request.addEventListener('load', handleResponse);
+request.open('GET', '/?sections=mm-cart', true);
+request.send();
+```
+
+```json
+{
+  "mm-cart": "<div id=\"shopify-section-mm-cart\" class=\"shopify-section\">\n<!-- section content -->\n</div>"
+}
+```
+
+Note:
+section will be rendered in the context of the path
+
+But it can also be asked with cart requests (only with POST requests)
+
+```js
+fetch(window.Shopify.routes.root + 'cart/clear.js', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sections: 'mm-cart' })
+})
+```
+
+Note:
+Sections are rendered after the data modifications from the request are completed
