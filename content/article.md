@@ -1,4 +1,4 @@
-![JS](images/js-logo.png)
+![JS](../images/js-logo.png)
 # JavaScript
 
 
@@ -493,7 +493,7 @@ element.addEventListener('input', (e) => {
 
 
 I DOUBLE DARE YOU
-![I double dare you!](images/double-dare-you.jpg)
+![I double dare you!](../images/double-dare-you.jpg)
 
 
 
@@ -534,7 +534,7 @@ to the stack of things to do (the _callback queue_),
 **AFTER** it is done doing what it was doing at the moment (the _call stack_).
 
 
-![Event loop](images/event-loop.png)
+![Event loop](../images/event-loop.png)
 
 
 ### fetch (HTTP request)
@@ -810,7 +810,7 @@ if (sliderElement) {
 ```
 It will leak to the global state (`window`)
 
-![variable leak](images/global-variable-leak.png)
+![variable leak](../images/global-variable-leak.png)
 
 
 It also forces you to be careful about prefixing all functions to prevent overlaps
@@ -893,12 +893,12 @@ And this `assert_url` filter not ideal?
 ```
 
 
-![Not even my final form](images/not-even-my-final-form.jpg)
+![Not even my final form](../images/not-even-my-final-form.jpg)
 
 
 ### importmaps to load ES modules
 
-![Final form](images/final-form.png)
+![Final form](../images/final-form.png)
 
 Note:
 Common alternative is to use a JS builder, that compiles all you files in one and provides the import/export functionality.
@@ -1074,7 +1074,7 @@ console.log(product)
 
 ### What's ... this?
 
-![What's this?](images/whats-this.jpg)
+![What's this?](../images/whats-this.jpg)
 
 
 In the contructor, `this` refers to the object that is being constructed, the new instance.
